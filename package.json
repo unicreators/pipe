@@ -3,11 +3,19 @@
   "version": "0.1.0",
   "description": "A simple value handler.",
   "main": "src/index.ts",  
-  "scripts": {
-    "test": "mocha -r ts-node/register tests/*.test.ts"
-  },
   "author": "yichen",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unicreators/pipe.git"
+  },
+  "keywords": [
+    "pipe",
+    "value handler"
+  ],
+  "scripts": {
+    "test": "mocha -r ts-node/register tests/*.test.ts"
+  },  
   "devDependencies": {
     "@types/chai": "^4.2.12",
     "@types/mocha": "^8.0.3",
