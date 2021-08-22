@@ -1,0 +1,21 @@
+{
+  "name": "@unicreators/pipe",
+  "version": "0.1.0",
+  "description": "A simple value handler.",
+  "main": "src/index.ts",  
+  "scripts": {
+    "test": "mocha -r ts-node/register tests/*.test.ts"
+  },
+  "author": "yichen",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chai": "^4.2.12",
+    "@types/mocha": "^8.0.3",
+    "@types/node": "^14.6.2",
+    "@types/typescript": "^2.0.0",
+    "chai": "^4.2.0",
+    "mocha": "^8.1.3",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.2"
+  }
+}
