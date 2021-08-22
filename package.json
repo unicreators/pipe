@@ -1,7 +1,7 @@
 {
   "name": "@unicreators/pipe",
-  "version": "0.1.1",
-  "description": "A simple value handler.",
+  "version": "0.1.2",
+  "description": "Pipe is a library for handle values, It completes the validate and conversion of values by combining handler functions.",
   "main": "src/index.ts",  
   "author": "yichen",
   "license": "MIT",
