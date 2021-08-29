@@ -40,18 +40,14 @@ $ npm install @unicreators/pipe
 - [boolean](./docs/modules.md#boolean)
 - [regex](./docs/modules.md#regex)
 - [array](./docs/modules.md#array)
-
 - [min](./docs/modules.md#min)
 - [max](./docs/modules.md#max)
 - [minLength](./docs/modules.md#minlength)
 - [maxLength](./docs/modules.md#maxlength)
-
 - [def](./docs/modules.md#def)
 - [required](./docs/modules.md#required)
 - [throwError](./docs/modules.md#throwerror)
-
   
-
 
 ## Composers
 
