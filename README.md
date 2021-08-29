@@ -33,27 +33,33 @@ $ npm install @unicreators/pipe
 
 ## Handlers
 
-- `int`
-- `float`
-- `date`
-- `boolean`
-- `string`
-- `regex`
-- `array`
-- `min`
-- `max`
-- `minLength`
-- `maxLength`
-- `def`
+- [string](./docs/modules.md#string)
+- [int](./docs/modules.md#int)
+- [float](./docs/modules.md#float)
+- [date](./docs/modules.md#date)
+- [boolean](./docs/modules.md#boolean)
+- [regex](./docs/modules.md#regex)
+- [array](./docs/modules.md#array)
+
+- [min](./docs/modules.md#min)
+- [max](./docs/modules.md#max)
+- [minLength](./docs/modules.md#minlength)
+- [maxLength](./docs/modules.md#maxlength)
+
+- [def](./docs/modules.md#def)
+- [required](./docs/modules.md#required)
+- [throwError](./docs/modules.md#throwerror)
+
   
 
 
 ## Composers
 
-- `pipe`
-- `forward`
-- `any`
-- `all`
+- [pipe](./docs/modules.md#pipe)
+- [forward](./docs/modules.md#forward)
+- [all](./docs/modules.md#all)
+- [any](./docs/modules.md#any)
+
 
 
 
