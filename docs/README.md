@@ -6,8 +6,6 @@ Pipe is a library for handle values, It completes the validate and conversion of
 
 Pipe 是一个处理值的库，它通过组合处理函数来完成对值的验证和转换。
 
-##
-
 ```ts
 import { pipe, int, min, max } from '@unicreators/pipe';
 
@@ -22,7 +20,7 @@ console.log(fn('8') == 8);
 // true
 ```
 
-:watermelon: [Example](./tests/index.test.ts) 
+:watermelon: [APIs](./docs/modules.md) & [Example](./tests/index.test.ts)  
 
 ## Install
 
