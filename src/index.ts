@@ -16,14 +16,17 @@ import {
  *
  * @template T 
  * 输入类型
+ * 
  * @template R
  * 输出类型
+ * 
  * @param {T} value
  * 输入值
+ * 
  * @return {R | undefined} 
  * 输出值
  */
-export type Func<T = any, R = any> = (value: T) => R | undefined;
+export interface Func<T = any, R = any> { (value: T): R | undefined; }
 
 /**
  * 行为上下文
@@ -35,6 +38,7 @@ export interface BehaviorContext {
      * 当前值
      *
      * @type {*}
+     * @property
      * @memberof BehaviorContext
      */
     currentValue?: any,
@@ -43,6 +47,7 @@ export interface BehaviorContext {
      * 前一个值
      * 
      * @type {*}
+     * @property
      * @memberof BehaviorContext
      */
     prevValue?: any,
@@ -51,6 +56,7 @@ export interface BehaviorContext {
      * 处理器索引
      * 
      * @type {number}
+     * @property
      * @memberof BehaviorContext
      */
     handlerIndex: number
@@ -68,6 +74,7 @@ export interface BehaviorResult {
      * 结果值
      * 
      * @type {*}
+     * @property
      * @memberof BehaviorResult
      */
     value?: any,
@@ -76,6 +83,7 @@ export interface BehaviorResult {
      * 是否执行下一个处理函数
      * 
      * @type {boolean}
+     * @property
      * @memberof BehaviorResult
      */
     next?: boolean
@@ -84,19 +92,24 @@ export interface BehaviorResult {
 /**
  * 行为函数
  * 
- * @description 
  * 用于控制{@link Func 处理函数}执行行为 
  * 
  * @function BehaviorFunc
+ * 
+ * @param {BehaviorContext} context
+ * 上下文
+ * 
+ * @return {BehaviorResult}
+ * 
  */
-export type BehaviorFunc = (context: BehaviorContext) => BehaviorResult;
+export interface BehaviorFunc { (context: BehaviorContext): BehaviorResult; }
 
 
 /**
  * 内建行为
  * 
  */
-export const PipeBehaviors: {
+export const behaviors: {
     /**
      * - 从左向右执行{@link Func 处理函数}
      * - 所有{@link Func 处理函数}都将执行
@@ -118,7 +131,6 @@ export const PipeBehaviors: {
      * - 任一{@link Func 处理函数}执行结果为`null`或`undefined`时中断
      * 
      * @type {BehaviorFunc}
-     * @label BreakOnNullOrUndefinedValue
      */
     BreakOnNullOrUndefinedValue: BehaviorFunc
 } = {
@@ -150,6 +162,10 @@ export const PipeBehaviors: {
  * 
  * */
 export const defaults: {
+    /**
+     * 字符串处理函数缺省配置
+     * @type {trim: boolean}
+     */
     string: {
         /** 
          * 是否去除前后空白字符
@@ -158,6 +174,10 @@ export const defaults: {
          * */
         trim: boolean
     },
+    /**
+     * 整数处理函数缺省配置
+     * @type {tryConvert: boolean}
+     */
     int: {
         /** 
          * 是否尝试转换
@@ -166,6 +186,10 @@ export const defaults: {
          * */
         tryConvert: boolean
     },
+    /**
+     * 小数处理函数缺省配置
+     * @type {tryConvert: boolean, fixed?: number}
+     */
     float: {
         /** 
          * 是否尝试转换
@@ -180,6 +204,10 @@ export const defaults: {
          * */
         fixed?: number
     },
+    /**
+     * 布尔处理函数缺省配置
+     * @type {tryConvert: boolean}
+     */
     boolean: {
         /** 
          * 是否尝试转换
@@ -188,6 +216,10 @@ export const defaults: {
          * */
         tryConvert: boolean
     },
+    /**
+     * 日期处理函数缺省配置
+     * @type {tryConvert: boolean}
+     */
     date: {
         /** 
          * 是否尝试转换
@@ -196,6 +228,10 @@ export const defaults: {
          * */
         tryConvert: boolean
     },
+    /**
+     * 数组处理函数缺省配置
+     * @type { tryConvert: boolean, removeNullOrUndefined: boolean }
+     */
     array: {
         /** 
          * 是否尝试转换
@@ -211,11 +247,15 @@ export const defaults: {
          * */
         removeNullOrUndefined: boolean
     },
+    /**
+     * 组合函数缺省配置
+     * @type {behavior?: BehaviorFunc}
+     */
     pipe: {
         /** 
          * 执行行为
          * @type {BehaviorFunc}
-         * @default {@link PipeBehaviors.BreakOnNullOrUndefinedValue}
+         * @default {@link behaviors.BreakOnNullOrUndefinedValue}
          * */
         behavior?: BehaviorFunc
     }
@@ -226,7 +266,7 @@ export const defaults: {
     boolean: { tryConvert: true },
     date: { tryConvert: false },
     array: { tryConvert: false, removeNullOrUndefined: false },
-    pipe: { behavior: PipeBehaviors.BreakOnNullOrUndefinedValue }
+    pipe: { behavior: behaviors.BreakOnNullOrUndefinedValue }
 };
 
 
@@ -234,15 +274,13 @@ export const defaults: {
 /**
  * 组合处理函数
  *
+ * 
  * @template T
  * 
  * @template R
  * 
  * @param {({ behavior?: BehaviorFunc } | Func<T, R>)} [optsOrHanlderFn]
- * 设置项或{@link Func 处理函数}
- *
- * 当 {@link optsOrHanlderFn} 为 {@link Func 处理函数} 时，视为 {@link handlers} 成员项
- *
+ * 设置项或{@link Func 处理函数}，当 {@link optsOrHanlderFn} 为 {@link Func 处理函数} 时，视为 {@link handlers} 成员项
  * 否则视为设置项
  *
  * @param {boolean} [optsOrHanlderFn.behavior] 
@@ -255,13 +293,14 @@ export const defaults: {
  * 处理函数
  * 
  * @example
+ * ```ts
  * let result = pipe()(8);
  * expect(result).equal(8);
  *
- * result = pipe({ behavior: PipeBehaviors.Forward }, int(), def(2))('8');
+ * result = pipe({ behavior: behaviors.Forward }, int(), def(2))('8');
  * expect(result).equal(2);
  *
- * result = pipe<any, any>({ behavior: PipeBehaviors.BreakOnNotNullOrUndefinedValue }, int(), string(), def(2))('8');
+ * result = pipe<any, any>({ behavior: behaviors.BreakOnNotNullOrUndefinedValue }, int(), string(), def(2))('8');
  * expect(result).equal('8');
  *
  * // custom behavior
@@ -285,6 +324,7 @@ export const defaults: {
  * let range = pipe(min(2), max(10));
  * result = pipe(int(), range)(8);
  * expect(result).equal(8);
+ * ```
  */
 export const pipe = <T = any, R = any>(optsOrHanlderFn?: { behavior?: BehaviorFunc } | Func<T, R>,
     ...handlers: Array<Func<T, R>>): Func<T, R> => {
@@ -294,7 +334,7 @@ export const pipe = <T = any, R = any>(optsOrHanlderFn?: { behavior?: BehaviorFu
     if (_isFunction(optsOrHanlderFn))
         _handlers.unshift(optsOrHanlderFn);
     else if (_isFunction(optsOrHanlderFn?.behavior) || _isNullOrUndefined(_behaviorFn))
-        _behaviorFn = optsOrHanlderFn?.behavior || PipeBehaviors.BreakOnNullOrUndefinedValue;
+        _behaviorFn = optsOrHanlderFn?.behavior || behaviors.BreakOnNullOrUndefinedValue;
 
     switch (_handlers.length) {
         case 0: return _identity;
@@ -328,6 +368,7 @@ export const pipe = <T = any, R = any>(optsOrHanlderFn?: { behavior?: BehaviorFu
  * 处理函数
  * 
  * @example
+ * ```ts
  * let result = forward(int(), def(2), (v) => v + 2)('8');
  * expect(result).equal(4);
  *
@@ -336,9 +377,10 @@ export const pipe = <T = any, R = any>(optsOrHanlderFn?: { behavior?: BehaviorFu
  *
  * result = forward(int(), def(2), (v) => undefined)(8);
  * expect(result).to.be.undefined;
+ * ```
  */
 export const forward = <T = any, R = any>(...handlers: Array<Func<T, R>>): Func<T, R> =>
-    pipe({ behavior: PipeBehaviors.Forward }, ...handlers);
+    pipe({ behavior: behaviors.Forward }, ...handlers);
 
 /**
  * 组合处理函数
@@ -357,11 +399,13 @@ export const forward = <T = any, R = any>(...handlers: Array<Func<T, R>>): Func<
  * 处理函数
  * 
  * @example
+ * ```ts
  * let result = any<any, any>(int(), (v) => `#${v}`)('8');
  * expect(result).equal('#8');
+ * ```
  */
 export const any = <T = any, R = any>(...handlers: Array<Func<T, R>>): Func<T, R> =>
-    pipe({ behavior: PipeBehaviors.BreakOnNotNullOrUndefinedValue }, ...handlers);
+    pipe({ behavior: behaviors.BreakOnNotNullOrUndefinedValue }, ...handlers);
 
 /**
  * 组合处理函数
@@ -380,13 +424,16 @@ export const any = <T = any, R = any>(...handlers: Array<Func<T, R>>): Func<T, R
  * 处理函数
  * 
  * @example
+ * ```ts
  * let result = all(int(), min(1))(8);
  * expect(result).equal(8);
  *
  * result = all(int(), min(1), max(6))(8);
  * expect(result).to.be.undefined;
+ * ```
  */
-export const all = pipe;
+export const all = <T = any, R = any>(...handlers: Array<Func<T, R>>): Func<T, R> =>
+    pipe({ behavior: behaviors.BreakOnNullOrUndefinedValue }, ...handlers);
 
 
 
@@ -412,22 +459,46 @@ const _exec = <T = any, R = any>(handler: Func<T, R>, handlerIndex: number, prev
     });
 };
 
-
-export const throwError = <T = any, R = any>(errorOrErrorFn: Func | any,
-    ...handlers: Array<Func<T, R>>): Func<T, R> =>
-    pipe(...handlers, (value: T): R => {
-        if (_isNullOrUndefined(value))
-            throw _ensureCall(errorOrErrorFn, value);
+/** 
+ * 构建值检查处理函数
+ * 当 {@link match match} 函数返回 `true` 时，则抛出 {@link errorOrErrorFn errorOrErrorFn} 构建的异常
+ *
+ * @template T 
+ * 输入类型
+ *
+ * @template R
+ * 输出类型
+ *
+ * @param {Func | any} errorOrErrorFn
+ * 异常值或构建异常的函数
+ * 
+ * @param {Func<T, boolean>} [match]
+ * 匹配函数，当此函数返回 `true` 时，则抛出 {@link errorOrErrorFn errorOrErrorFn} 构建的异常
+ * 
+ * @return {Func<T, R>}
+ */
+export const throwError = <T = any, R = any>(errorOrErrorFn: Func | any, match: Func<T, boolean> = _isNullOrUndefined): Func<T, R> =>
+    (value: T): R => {
+        if (match(value)) throw _ensureCall(errorOrErrorFn, value);
         return value as any;
-    });
+    };
 
-export const required = <T = any, R = any>(errorOrErrorFn: Func | any,
-    ...handlers: Array<Func<T, R>>): Func<T, R> =>
-    pipe((value: T): R => {
-        if (_isNullOrUndefined(value))
-            throw _ensureCall(errorOrErrorFn, value);
-        return value as any;
-    }, ...handlers);
+/** 
+ * 构建`null`或`undefined`值检查处理函数
+ * 当处理值为`null`或`undefined`时，则抛出 {@link errorOrErrorFn errorOrErrorFn} 构建的异常
+ *
+ * @template T 
+ * 输入类型
+ *
+ * @template R
+ * 输出类型
+ *
+ * @param {(Func | any)} errorOrErrorFn
+ * 异常值或构建异常的函数
+ * 
+ * @return {Func<T, R>}
+ */
+export const required = <T = any, R = any>(errorOrErrorFn: Func | any): Func<T, R> => throwError(errorOrErrorFn);
 
 
 /**
@@ -441,12 +512,14 @@ export const required = <T = any, R = any>(errorOrErrorFn: Func | any,
  * 
  * @return {Func<T, T>}
  * 
- * @example 
+ * @example
+ * ```ts
  * let result = min(10)(14);
  * expect(result).equal(14)
  *
  * result = min(10)(9);
  * expect(result).to.be.undefined;
+ * ```
  */
 export const min = <T = number | Date>(minValue: T): Func<T, T> =>
     _build((value: T) => value >= minValue);
@@ -462,12 +535,14 @@ export const min = <T = number | Date>(minValue: T): Func<T, T> =>
  * 
  * @return {Func<T, T>}
  * 
- * @example 
+ * @example
+ * ```ts
  * let result = max(10)(3);
  * expect(result).equal(3);
  *
  * result = max(10)(14);
  * expect(result).to.be.undefined;
+ * ```
  */
 export const max = <T = number | Date>(maxValue: T): Func<T, T> =>
     _build((value: T) => value < maxValue);
@@ -483,7 +558,8 @@ export const max = <T = number | Date>(maxValue: T): Func<T, T> =>
  * 
  * @return {Func<T, T>}
  * 
- * @example 
+ * @example
+ * ```ts
  * let result = minLength(2)('zz');
  * expect(result).equal('zz');
  *
@@ -495,6 +571,7 @@ export const max = <T = number | Date>(maxValue: T): Func<T, T> =>
  *
  * result = minLength(2)(undefined);
  * expect(result).to.be.undefined;
+ * ```
  */
 export const minLength = <T = string | Array<any>>(min: number): Func<T, T> =>
     _build((value: T) => (value as any)?.length >= min);
@@ -510,7 +587,8 @@ export const minLength = <T = string | Array<any>>(min: number): Func<T, T> =>
  * 
  * @return {Func<T, T>}
  * 
- * @example 
+ * @example
+ * ```ts 
  * let result = maxLength(2)('zz');
  * expect(result).equal('zz');
  *
@@ -522,6 +600,7 @@ export const minLength = <T = string | Array<any>>(min: number): Func<T, T> =>
  *
  * result = maxLength(2)(undefined);
  * expect(result).to.be.undefined;
+ * ```
  */
 export const maxLength = <T = string | Array<any>>(max: number): Func<T, T> =>
     _build((value: T) => (value as any)?.length <= max);
@@ -538,11 +617,13 @@ export const maxLength = <T = string | Array<any>>(max: number): Func<T, T> =>
  * @return {Func<any, T>}
  * 
  * @example
+ * ```ts
  * let result = def(2)(undefined);
  * expect(result).equal(2);
  *
  * result = def(2)(1);
  * expect(result).equal(1);
+ * ```
  */
 export const def = <T = any>(def: T): Func<any, T> => (value: T) => _ensure(value, def);
 
@@ -558,7 +639,8 @@ export const def = <T = any>(def: T): Func<any, T> => (value: T) => _ensure(valu
  * @return {Func<any, string>}  
  * 处理函数
  * 
- * @example 
+ * @example
+ * ```ts 
  * let result = string()('zzz ');
  * expect(result).equal('zzz');
  *
@@ -567,6 +649,7 @@ export const def = <T = any>(def: T): Func<any, T> => (value: T) => _ensure(valu
  *
  * result = string()(1);
  * expect(result).to.be.undefined;
+ * ```
  */
 export const string = (opts?: { trim?: boolean }): Func<any, string> =>
     _build<any, string>(_isString, undefined,
@@ -584,7 +667,8 @@ export const string = (opts?: { trim?: boolean }): Func<any, string> =>
  * @return {Func<any, number>}  
  * 处理函数
  * 
- * @example 
+ * @example
+ * ```ts 
  * let result = int()(1);
  * expect(result).equal(1);
  *
@@ -593,6 +677,7 @@ export const string = (opts?: { trim?: boolean }): Func<any, string> =>
  *
  * result = int({ tryConvert: true })('s');
  * expect(result).to.be.undefined;
+ * ```
  */
 export const int = (opts?: { tryConvert?: boolean }): Func<any, number> =>
     _build<any, number>(Number.isInteger,
@@ -618,7 +703,8 @@ const _fixedFn = pipe(int(), min(0), max(100));
 * @return {Func<any, number>}  
 * 处理函数
 * 
-* @example 
+* @example
+ * ```ts 
 * let result = float()(1.23);
 * expect(result).equal(1.23);
 *
@@ -630,7 +716,8 @@ const _fixedFn = pipe(int(), min(0), max(100));
 *
 * result = float({ fixed: 2 })(1.233333);
 * expect(result).equal(1.23);
-*/
+* ```
+ */
 export const float = (opts?: { tryConvert?: boolean, fixed?: number }): Func<any, number> => {
     let _fixed = _fixedFn(opts?.fixed) ?? _fixedFn(defaults.float.fixed),
         _handleFn = _isNumber(_fixed) ? (v: number) => parseFloat(v.toFixed(_fixed)) : undefined;
@@ -651,7 +738,8 @@ export const float = (opts?: { tryConvert?: boolean, fixed?: number }): Func<any
 * @return {Func<any, Date>}  
 * 处理函数
 * 
-* @example 
+* @example
+ * ```ts 
 * let d1 = new Date();
 * let result = date()(d1);
 * expect(result).equal(d1);
@@ -664,7 +752,8 @@ export const float = (opts?: { tryConvert?: boolean, fixed?: number }): Func<any
 *
 * result = date({ tryConvert: true })('2012-12-12T00:00:00.000Z');
 * expect(result).deep.equal(new Date('2012-12-12T00:00:00.000Z'));
-*/
+* ```
+ */
 export const date = (opts?: { tryConvert?: boolean }): Func<any, Date> =>
     _build<any, Date>(_isDate,
         _ensure(opts?.tryConvert, defaults.date.tryConvert) ? _parseDate : undefined);
@@ -681,7 +770,8 @@ export const date = (opts?: { tryConvert?: boolean }): Func<any, Date> =>
 * @return {Func<any, boolean>}  
 * 处理函数
 * 
-* @example 
+* @example
+ * ```ts 
 * let result = boolean()(1);
 * expect(result).equal(true);
 *
@@ -696,7 +786,8 @@ export const date = (opts?: { tryConvert?: boolean }): Func<any, Date> =>
 *
 * result = boolean({ tryConvert: false })('false');
 * expect(result).to.be.undefined;
-*/
+* ```
+ */
 export const boolean = (opts?: { tryConvert?: boolean }): Func<any, boolean> =>
     _build<any, boolean>(_isBoolean,
         _ensure(opts?.tryConvert, defaults.boolean.tryConvert) ? (v: any) => !!v : undefined);
@@ -731,7 +822,8 @@ export const boolean = (opts?: { tryConvert?: boolean }): Func<any, boolean> =>
 * @return {Func<any, Array<R>>}  
 * 处理函数
 * 
-* @example 
+* @example
+ * ```ts 
 * let result = array()([]);
 * expect(result).deep.equal([]);
 *
@@ -745,13 +837,22 @@ export const boolean = (opts?: { tryConvert?: boolean }): Func<any, boolean> =>
 * expect(result).deep.equal([1, 2, 4, 5, 8]);
 *
 * result = array({ removeNullOrUndefined: true },
-*     pipe({ behavior: PipeBehaviors.Forward }, int({ tryConvert: true }), def(100)))([1, 2, undefined, 4, '5', 's', 8]);
+*     pipe({ behavior: behaviors.Forward }, int({ tryConvert: true }), def(100)))([1, 2, undefined, 4, '5', 's', 8]);
 * expect(result).deep.equal([1, 2, 100, 4, 5, 100, 8]);
 *
 * result = array(int())([1, 2, undefined, 4, '5', 's', 8]);
 * expect(result).deep.equal([1, 2, undefined, 4, undefined, undefined, 8]);
-*/
-export const array = <T = any, R = any>(optsOrMapHanlderFn?: { tryConvert?: boolean, removeNullOrUndefined?: boolean } | Func<T, R>,
+* ```
+ */
+export const array = <T = any, R = any>(optsOrMapHanlderFn?: {
+    /**
+     * 是否尝试转换
+     *
+     * @type {boolean}
+     */
+    tryConvert?: boolean,
+    removeNullOrUndefined?: boolean
+} | Func<T, R>,
     ...mapHandlers: Array<Func<T, R>>): Func<any, Array<R>> => {
     let _opts = Object.assign({}, defaults.array);
     if (_isFunction(optsOrMapHanlderFn))
@@ -776,7 +877,8 @@ export const array = <T = any, R = any>(optsOrMapHanlderFn?: { tryConvert?: bool
  * 
  * @return {Func<string, string>}
  * 
- * @example 
+ * @example
+ * ```ts 
  * let result = regex(/^\d{2}$/)('31');
  * expect(result).equal('31');
  *
@@ -785,6 +887,7 @@ export const array = <T = any, R = any>(optsOrMapHanlderFn?: { tryConvert?: bool
  *
  * result = regex('^\\d{2}$')('311');
  * expect(result).to.be.undefined;
+ * ```
  */
 export const regex = (pattern: RegExp | string): Func<string, string> => {
     let _pattern = pattern instanceof RegExp ? pattern : new RegExp(pattern);

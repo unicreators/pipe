@@ -1,7 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
 
-import { int, string, float, regex, pipe, max, min, date, defaults, boolean, minLength, maxLength, def, array, PipeBehaviors, forward, any, all } from '../src/index';
+import { int, string, float, regex, pipe, max, min, date, defaults, boolean, minLength, maxLength, def, array, behaviors, forward, any, all } from '../src/index';
 
 
 describe('index.test.ts', function () {
@@ -106,7 +106,7 @@ describe('index.test.ts', function () {
         expect(result).deep.equal([1, 2, 4, 5, 8]);
 
         result = array({ removeNullOrUndefined: true },
-            pipe({ behavior: PipeBehaviors.Forward }, int({ tryConvert: true }), def(100)))([1, 2, undefined, 4, '5', 's', 8]);
+            pipe({ behavior: behaviors.Forward }, int({ tryConvert: true }), def(100)))([1, 2, undefined, 4, '5', 's', 8]);
         expect(result).deep.equal([1, 2, 100, 4, 5, 100, 8]);
 
 
@@ -179,10 +179,10 @@ describe('index.test.ts', function () {
         let result = pipe()(8);
         expect(result).equal(8);
 
-        result = pipe({ behavior: PipeBehaviors.Forward }, int(), def(2))('8');
+        result = pipe({ behavior: behaviors.Forward }, int(), def(2))('8');
         expect(result).equal(2);
 
-        result = pipe<any, any>({ behavior: PipeBehaviors.BreakOnNotNullOrUndefinedValue }, int(), string(), def(2))('8');
+        result = pipe<any, any>({ behavior: behaviors.BreakOnNotNullOrUndefinedValue }, int(), string(), def(2))('8');
         expect(result).equal('8');
 
         // custom behavior
@@ -262,7 +262,7 @@ describe('index.test.ts', function () {
         result = array()([1, 2, undefined, 4]);
         expect(result).deep.equal([1, 2, 4]);
 
-        defaults.pipe.behavior = PipeBehaviors.Forward;
+        defaults.pipe.behavior = behaviors.Forward;
         result = pipe(int(), def(2))('s');
         expect(result).equal(2);
 

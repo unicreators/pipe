@@ -1,14 +1,12 @@
+@unicreators/pipe / [Exports](modules.md)
 
 [![npm (scoped)](https://img.shields.io/npm/v/@unicreators/pipe)](https://www.npmjs.com/package/@unicreators/pipe)
 
-
 Pipe is a library for handle values, It completes the validate and conversion of values by combining handler functions.
-
 
 Pipe 是一个处理值的库，它通过组合处理函数来完成对值的验证和转换。
 
-
-## 
+##
 
 ```ts
 import { pipe, int, min, max } from '@unicreators/pipe';
@@ -24,11 +22,7 @@ console.log(fn('8') == 8);
 // true
 ```
 
-## 
-
-:watermelon: [APIs](./docs/modules.md) & [Example](./tests/index.test.ts)  
-
-## 
+:watermelon: [Example](./tests/index.test.ts) 
 
 ## Install
 
@@ -52,15 +46,12 @@ $ npm install @unicreators/pipe
 - `def`
   
 
-
 ## Composers
 
 - `pipe`
 - `forward`
 - `any`
 - `all`
-
-
 
 ### License
 
