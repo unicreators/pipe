@@ -33,30 +33,30 @@ $ npm install @unicreators/pipe
 
 ## Handlers
 
-- [string](./docs/modules.md#string)
-- [int](./docs/modules.md#int)
-- [float](./docs/modules.md#float)
-- [date](./docs/modules.md#date)
-- [boolean](./docs/modules.md#boolean)
-- [regex](./docs/modules.md#regex)
-- [array](./docs/modules.md#array)
-- [min](./docs/modules.md#min)
-- [max](./docs/modules.md#max)
-- [minLength](./docs/modules.md#minlength)
-- [maxLength](./docs/modules.md#maxlength)
-- [def](./docs/modules.md#def)
-- [required](./docs/modules.md#required)
-- [throwError](./docs/modules.md#throwerror)
-- [path](./docs/modules.md#path)
-- [project](./docs/modules.md#project)
+- [string](./docs#string)
+- [int](./docs#int)
+- [float](./docs#float)
+- [date](./docs#date)
+- [boolean](./docs#boolean)
+- [regex](./docs#regex)
+- [array](./docs#array)
+- [min](./docs#min)
+- [max](./docs#max)
+- [minLength](./docs#minlength)
+- [maxLength](./docs#maxlength)
+- [def](./docs#def)
+- [required](./docs#required)
+- [throwError](./docs#throwerror)
+- [path](./docs#path)
+- [project](./docs#project)
   
 
 ## Composers
 
-- [pipe](./docs/modules.md#pipe)
-- [forward](./docs/modules.md#forward)
-- [all](./docs/modules.md#all)
-- [any](./docs/modules.md#any)
+- [pipe](./docs#pipe)
+- [forward](./docs#forward)
+- [all](./docs#all)
+- [any](./docs#any)
 
 
 
