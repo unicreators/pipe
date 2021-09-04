@@ -1,5 +1,6 @@
 [![Tests](https://github.com/unicreators/pipe/actions/workflows/tests.yml/badge.svg)](https://github.com/unicreators/pipe/actions/workflows/tests.yml) 
-[![npm (scoped)](https://img.shields.io/npm/v/@unicreators/pipe)](https://www.npmjs.com/package/@unicreators/pipe)
+[![npm (scoped)](https://img.shields.io/npm/v/@unicreators/pipe)](https://www.npmjs.com/package/@unicreators/pipe) 
+[![License](https://img.shields.io/npm/l/@unicreators/pipe)](LICENSE)
 
 
 Pipe is a library for handle values, It completes the validate and conversion of values by combining handler functions.
