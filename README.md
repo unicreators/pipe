@@ -1,4 +1,4 @@
-
+[![Tests](https://github.com/unicreators/pipe/actions/workflows/tests.yml/badge.svg)](https://github.com/unicreators/pipe/actions/workflows/tests.yml) 
 [![npm (scoped)](https://img.shields.io/npm/v/@unicreators/pipe)](https://www.npmjs.com/package/@unicreators/pipe)
 
 
