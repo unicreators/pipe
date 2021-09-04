@@ -22,7 +22,7 @@ console.log(fn('8') == 8);
 // true
 ```
 
-:watermelon: [APIs](./docs/modules.md) & [Example](./tests/index.test.ts)  
+:watermelon: [APIs](./docs) & [Example](./tests/index.test.ts)  
 
 
 ## Install
@@ -47,6 +47,8 @@ $ npm install @unicreators/pipe
 - [def](./docs/modules.md#def)
 - [required](./docs/modules.md#required)
 - [throwError](./docs/modules.md#throwerror)
+- [path](./docs/modules.md#path)
+- [project](./docs/modules.md#project)
   
 
 ## Composers

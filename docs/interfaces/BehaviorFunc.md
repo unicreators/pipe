@@ -1,4 +1,4 @@
-[@unicreators/pipe](../README.md) / [Exports](../modules.md) / BehaviorFunc
+[@unicreators/pipe](../README.md) / BehaviorFunc
 
 # Interface: BehaviorFunc
 

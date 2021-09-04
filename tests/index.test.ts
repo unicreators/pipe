@@ -1,7 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
 
-import { int, string, float, regex, pipe, max, min, date, defaults, boolean, minLength, maxLength, def, array, behaviors, forward, any, all } from '../src/index';
+import { int, string, float, regex, pipe, max, min, date, defaults, boolean, minLength, maxLength, def, array, behaviors, forward, any, all, path, project } from '../src/index';
 
 
 describe('index.test.ts', function () {
@@ -133,7 +133,7 @@ describe('index.test.ts', function () {
     });
 
 
-    
+
 
     it('minLength', async () => {
         let result = minLength(2)('zz');
@@ -172,7 +172,7 @@ describe('index.test.ts', function () {
         expect(result).equal(1);
     });
 
-    
+
 
 
     it('pipe', async () => {
@@ -208,7 +208,7 @@ describe('index.test.ts', function () {
         expect(result).equal(8);
     });
 
-    it('forward', async () => {        
+    it('forward', async () => {
         let result = forward(int(), def(2), (v) => v + 2)('8');
         expect(result).equal(4);
 
@@ -219,12 +219,12 @@ describe('index.test.ts', function () {
         expect(result).to.be.undefined;
     });
 
-    it('any', async () => {        
+    it('any', async () => {
         let result = any<any, any>(int(), (v) => `#${v}`)('8');
         expect(result).equal('#8');
     });
 
-    it('all', async () => {        
+    it('all', async () => {
         let result = all(int(), min(1))(8);
         expect(result).equal(8);
 
@@ -267,6 +267,44 @@ describe('index.test.ts', function () {
         expect(result).equal(2);
 
 
+    });
+
+
+    it('path', async () => {
+        let result = path('a')({ a: 1 });
+        expect(result).equal(1);
+
+        result = path('a', 'aa', 'aaa')({ a: { aa: { aaa: 1 } } });
+        expect(result).equal(1);
+
+        result = path('bb')({ a: 1 });
+        expect(result).to.be.undefined;
+
+        result = path('bb', 'x')({ a: 1 });
+        expect(result).to.be.undefined;
+    });
+
+    it('project', async () => {
+        let result = project({
+            a: ['prop1', int()],
+            b: int(),
+            c: ['prop3'],
+            d: ['prop2', pipe(int(), min(4))],
+            e: 'prop4'
+        })({ prop1: 1, prop2: 's', prop3: 'v', b: 2 });
+        expect(result).deep.equal({
+            a: 1,
+            b: 2,
+            c: 'v',
+            d: undefined,
+            e: undefined
+        });
+
+        result = project({})({ a: 1 });
+        expect(result).deep.equal({});
+
+        result = project({})(undefined);
+        expect(result).to.be.undefined;
     });
 
 

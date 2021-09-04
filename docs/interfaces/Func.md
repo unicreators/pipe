@@ -1,4 +1,4 @@
-[@unicreators/pipe](../README.md) / [Exports](../modules.md) / Func
+[@unicreators/pipe](../README.md) / Func
 
 # Interface: Func<T, R\>
 

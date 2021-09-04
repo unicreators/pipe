@@ -5,6 +5,7 @@ export const _isNumber = (value: any): value is Number => typeof value === 'numb
 export const _isString = (value: any): value is String => typeof value === 'string';
 export const _isDate = (value: any): value is Date => value instanceof Date && !isNaN(value.getTime());
 export const _isBoolean = (value: any) => typeof value === 'boolean';
+export const _isObject = (value: any) => !_isNullOrUndefined(value) && typeof value === 'object' && Array.isArray(value) === false;
 export const _isNullOrUndefined = (value: any): boolean => value === null || value === undefined;
 export const _notNullOrUndefined = (value: any): boolean => value !== null && value !== undefined;
 export const _identity = (value: any): any => value;

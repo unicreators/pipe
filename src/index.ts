@@ -7,7 +7,7 @@
 
 import {
     _ensure, _ensureCall, _identity, _isBoolean, _isDate, _isFunction,
-    _isNullOrUndefined, _isNumber, _isString,
+    _isNullOrUndefined, _isNumber, _isObject, _isString,
     _notNullOrUndefined, _parseDate, _parseNumber, _undefined
 } from './utils'
 
@@ -458,6 +458,91 @@ const _exec = <T = any, R = any>(handler: Func<T, R>, handlerIndex: number, prev
         handlerIndex
     });
 };
+
+/**
+ * 构建提取路径值处理函数
+ * 
+ * @param {...Array<string>} paths
+ * 路径
+ * 
+ * @return {Func<object, any>}
+ * 
+ * @example
+ * ```ts
+ * let result = path('a')({ a: 1 });
+ * expect(result).equal(1);
+ * 
+ * result = path('a', 'aa', 'aaa')({ a: { aa: { aaa: 1 } } });
+ * expect(result).equal(1);
+ * 
+ * result = path('bb')({ a: 1 });
+ * expect(result).to.be.undefined;
+ * 
+ * result = path('bb', 'x')({ a: 1 });
+ * expect(result).to.be.undefined;
+ * ```
+ */
+export const path = (...paths: Array<string>) => (value: any) => {
+    let _value = value, index = 0;
+    while (index < paths.length) {
+        if (_isNullOrUndefined(_value))
+            return undefined;
+        _value = _value[paths[index++]];
+    }
+    return _value;
+};
+
+/**
+ * 构建投影处理函数
+ * 
+ * @param {{ [key: string]: Func | string | Array<any> }} map
+ * 映射
+ * 
+ * @return {Func<object, object>}
+ * 
+ * @example
+ * ```ts
+ * let result = project({
+ *     a: ['prop1', int()],
+ *     b: int(),
+ *     c: ['prop3'],
+ *     d: ['prop2', pipe(int(), min(4))],
+ *     e: 'prop4'
+ * })({ prop1: 1, prop2: 's', prop3: 'v', b: 2 });
+ * expect(result).deep.equal({
+ *     a: 1,
+ *     b: 2,
+ *     c: 'v',
+ *     d: undefined,
+ *     e: undefined
+ * });
+ * 
+ * result = project({})({ a: 1 });
+ * expect(result).deep.equal({});
+ * 
+ * result = project({})(undefined);
+ * expect(result).to.be.undefined;
+ * ```
+ */
+export const project = (map: { [key: string]: Func | string | Array<any> }): Func => {
+    let _map = map || {}, _maps = Object.keys(_map).map(key => {
+        let _item = _map[key];
+        if (Array.isArray(_item)) {
+            let paths = (_item as Array<any>).filter(_isString),
+                fn = _item[_item.length - 1];
+            return [key, fn, paths.length ? paths : [key]];
+        }
+        if (_isString(_item))
+            return [key, undefined, [_item]];
+        return [key, _item, [key]];
+    });
+    return (value: any) => _isObject(value) ?
+        _maps.reduce((r, [prop, fn, paths]) => {
+            r[prop] = pipe(path(paths), fn)(value);
+            return r;
+        }, {}) : undefined;
+}
+
 
 /** 
  * 构建值检查处理函数

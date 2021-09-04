@@ -1,4 +1,4 @@
-[@unicreators/pipe](../README.md) / [Exports](../modules.md) / BehaviorContext
+[@unicreators/pipe](../README.md) / BehaviorContext
 
 # Interface: BehaviorContext
 
