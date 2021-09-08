@@ -292,8 +292,9 @@ describe('index.test.ts', function () {
             d: ['prop2', pipe(int(), min(4))],
             e: 'prop4',
             f: ['prop5', () => 4],
-            g: ['prop6', (v) => v + 4]
-        })({ prop1: 1, prop2: 's', prop3: 'v', b: 2, prop6: 6 });
+            g: ['prop6', (v) => v + 4],
+            h: ['prop7', 'prop8']
+        })({ prop1: 1, prop2: 's', prop3: 'v', b: 2, prop6: 6, prop7: { prop8: 100 } });
         expect(result).deep.equal({
             a: 1,
             b: 2,
@@ -301,7 +302,8 @@ describe('index.test.ts', function () {
             d: undefined,
             e: undefined,
             f: 4,
-            g: 10
+            g: 10,
+            h: 100
         });
 
         result = project({})({ a: 1 });

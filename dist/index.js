@@ -335,7 +335,7 @@ var project = function (map) {
     return function (value) { return utils_1._isObject(value) ?
         _maps.reduce(function (r, _a) {
             var prop = _a[0], fn = _a[1], paths = _a[2];
-            r[prop] = exports.forward(exports.path(paths), fn)(value);
+            r[prop] = exports.forward(exports.path.apply(void 0, paths), fn)(value);
             return r;
         }, {}) : undefined; };
 };

@@ -1,6 +1,6 @@
 {
   "name": "@unicreators/pipe",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "Pipe is a library for handle values, It completes the validate and conversion of values by combining handler functions.",
   "main": "dist/index.js",
   "author": "yichen",
@@ -19,7 +19,8 @@
   ],
   "scripts": {
     "test": "mocha -r ts-node/register tests/*.test.ts",
-    "doc": "rm -rf docs & npx typedoc --disableSources --readme none src/index.ts"
+    "doc": "rm -rf docs & npx typedoc --disableSources --readme none src/index.ts",
+    "build": "rm -rf dist & tsc"
   },
   "devDependencies": {
     "@types/chai": "^4.2.12",
