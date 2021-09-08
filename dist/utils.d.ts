@@ -1,0 +1,14 @@
+export declare const _isFunction: (value: any) => value is Function;
+export declare const _isNumber: (value: any) => value is Number;
+export declare const _isString: (value: any) => value is String;
+export declare const _isDate: (value: any) => value is Date;
+export declare const _isBoolean: (value: any) => boolean;
+export declare const _isObject: (value: any) => boolean;
+export declare const _isNullOrUndefined: (value: any) => boolean;
+export declare const _notNullOrUndefined: (value: any) => boolean;
+export declare const _identity: (value: any) => any;
+export declare const _undefined: (value: any) => undefined;
+export declare const _parseNumber: (parseFn: (value: any) => number) => (value: any, def?: number) => number | undefined;
+export declare const _parseDate: (value: any, def?: Date) => Date | undefined;
+export declare const _ensure: (value: any, def?: any, validate?: (value: any) => boolean) => any;
+export declare const _ensureCall: (fnOrValue: (...args: Array<any>) => any | any, ...args: Array<any>) => any;
