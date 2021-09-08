@@ -290,14 +290,18 @@ describe('index.test.ts', function () {
             b: int(),
             c: ['prop3'],
             d: ['prop2', pipe(int(), min(4))],
-            e: 'prop4'
-        })({ prop1: 1, prop2: 's', prop3: 'v', b: 2 });
+            e: 'prop4',
+            f: ['prop5', () => 4],
+            g: ['prop6', (v) => v + 4]
+        })({ prop1: 1, prop2: 's', prop3: 'v', b: 2, prop6: 6 });
         expect(result).deep.equal({
             a: 1,
             b: 2,
             c: 'v',
             d: undefined,
-            e: undefined
+            e: undefined,
+            f: 4,
+            g: 10
         });
 
         result = project({})({ a: 1 });

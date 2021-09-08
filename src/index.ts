@@ -538,7 +538,7 @@ export const project = (map: { [key: string]: Func | string | Array<any> }): Fun
     });
     return (value: any) => _isObject(value) ?
         _maps.reduce((r, [prop, fn, paths]) => {
-            r[prop] = pipe(path(paths), fn)(value);
+            r[prop] = forward(path(paths), fn)(value);
             return r;
         }, {}) : undefined;
 }
