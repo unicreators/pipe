@@ -1,6 +1,6 @@
 {
   "name": "@unicreators/pipe",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Pipe is a library for handle values, It completes the validate and conversion of values by combining handler functions.",
   "main": "dist/index.js",
   "author": "yichen",

@@ -11,6 +11,10 @@
 - [BehaviorResult](interfaces/BehaviorResult.md)
 - [Func](interfaces/Func.md)
 
+### Type aliases
+
+- [DependFunc](README.md#dependfunc)
+
 ### Variables
 
 - [behaviors](README.md#behaviors)
@@ -38,6 +42,12 @@
 - [required](README.md#required)
 - [string](README.md#string)
 - [throwError](README.md#throwerror)
+
+## Type aliases
+
+### DependFunc
+
+Ƭ **DependFunc**: [`Func`](interfaces/Func.md) \| { `fn`: [`Func`](interfaces/Func.md) ; `on?`: (`processed`: `Record`<`string`, `any`\>, `value`: `any`) => `boolean`  }
 
 ## Variables
 
@@ -697,17 +707,17 @@ ___
 **`example`**
 ```ts
 let result = project({
-    a: ['prop1', int()],
-    b: int(),
-    c: ['prop3'],
-    d: ['prop2', pipe(int(), min(4))],
-    e: 'prop4'
-})({ prop1: 1, prop2: 's', prop3: 'v', b: 2 });
+    a: path('prop1'),
+    b: pipe(path('b'), int()),
+    c: pipe(path('prop3'), int()),
+    d: forward(path('prop6'), pipe(int(), min(8)), def(1)),
+    e: { fn: pipe(path('prop7', 'prop8'), int()), on: (processed) => processed.a == 2 }
+})({ prop1: 1, prop2: 's', prop3: 'v', b: 2, prop6: 6, prop7: { prop8: 100 } });
 expect(result).deep.equal({
     a: 1,
     b: 2,
-    c: 'v',
-    d: undefined,
+    c: undefined,
+    d: 1,
     e: undefined
 });
 
@@ -715,7 +725,7 @@ result = project({})({ a: 1 });
 expect(result).deep.equal({});
 
 result = project({})(undefined);
-expect(result).to.be.undefined;
+expect(result).deep.equal({});
 ```
 
 #### Parameters

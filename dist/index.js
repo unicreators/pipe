@@ -292,7 +292,7 @@ exports.path = path;
 /**
  * 构建投影处理函数
  *
- * @param {{ [key: string]: Func | string | Array<any> }} map
+ * @param {{ [key: string]: DependFunc }} map
  * 映射
  *
  * @return {Func<object, object>}
@@ -300,17 +300,17 @@ exports.path = path;
  * @example
  * ```ts
  * let result = project({
- *     a: ['prop1', int()],
- *     b: int(),
- *     c: ['prop3'],
- *     d: ['prop2', pipe(int(), min(4))],
- *     e: 'prop4'
- * })({ prop1: 1, prop2: 's', prop3: 'v', b: 2 });
+ *     a: path('prop1'),
+ *     b: pipe(path('b'), int()),
+ *     c: pipe(path('prop3'), int()),
+ *     d: forward(path('prop6'), pipe(int(), min(8)), def(1)),
+ *     e: { fn: pipe(path('prop7', 'prop8'), int()), on: (processed) => processed.a == 2 }
+ * })({ prop1: 1, prop2: 's', prop3: 'v', b: 2, prop6: 6, prop7: { prop8: 100 } });
  * expect(result).deep.equal({
  *     a: 1,
  *     b: 2,
- *     c: 'v',
- *     d: undefined,
+ *     c: undefined,
+ *     d: 1,
  *     e: undefined
  * });
  *
@@ -318,26 +318,34 @@ exports.path = path;
  * expect(result).deep.equal({});
  *
  * result = project({})(undefined);
- * expect(result).to.be.undefined;
+ * expect(result).deep.equal({});
  * ```
  */
 var project = function (map) {
-    var _map = map || {}, _maps = Object.keys(_map).map(function (key) {
-        var _item = _map[key];
-        if (Array.isArray(_item)) {
-            var paths = _item.filter(utils_1._isString), fn = _item[_item.length - 1];
-            return [key, fn, paths.length ? paths : [key]];
+    var keys = Object.keys(map || {}), _items = [], _children = [];
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i], item = map[key];
+        if (utils_1._isFunction(item))
+            item = { fn: item };
+        var _a = (item || {}), fn = _a.fn, on = _a.on;
+        if (!utils_1._isFunction(on)) {
+            _items.push([key, fn]);
+            continue;
         }
-        if (utils_1._isString(_item))
-            return [key, undefined, [_item]];
-        return [key, _item, [key]];
-    });
-    return function (value) { return utils_1._isObject(value) ?
-        _maps.reduce(function (r, _a) {
-            var prop = _a[0], fn = _a[1], paths = _a[2];
-            r[prop] = exports.forward(exports.path.apply(void 0, paths), fn)(value);
+        _children.push([key, fn, on]);
+    }
+    return function (value) {
+        var processed = _items.reduce(function (r, _a) {
+            var prop = _a[0], fn = _a[1];
+            r[prop] = fn(value);
             return r;
-        }, {}) : undefined; };
+        }, {});
+        return Object.assign(processed, _children.reduce(function (r, _a) {
+            var prop = _a[0], fn = _a[1], on = _a[2];
+            r[prop] = on(processed, value) ? fn(value) : undefined;
+            return r;
+        }, {}));
+    };
 };
 exports.project = project;
 /**

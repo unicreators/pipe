@@ -374,10 +374,14 @@ export declare const all: <T = any, R = any>(...handlers: Func<T, R>[]) => Func<
  * ```
  */
 export declare const path: (...paths: Array<string>) => (value: any) => any;
+export declare type DependFunc = Func | {
+    fn: Func;
+    on?: (processed: Record<string, any>, value: any) => boolean;
+};
 /**
  * 构建投影处理函数
  *
- * @param {{ [key: string]: Func | string | Array<any> }} map
+ * @param {{ [key: string]: DependFunc }} map
  * 映射
  *
  * @return {Func<object, object>}
@@ -385,17 +389,17 @@ export declare const path: (...paths: Array<string>) => (value: any) => any;
  * @example
  * ```ts
  * let result = project({
- *     a: ['prop1', int()],
- *     b: int(),
- *     c: ['prop3'],
- *     d: ['prop2', pipe(int(), min(4))],
- *     e: 'prop4'
- * })({ prop1: 1, prop2: 's', prop3: 'v', b: 2 });
+ *     a: path('prop1'),
+ *     b: pipe(path('b'), int()),
+ *     c: pipe(path('prop3'), int()),
+ *     d: forward(path('prop6'), pipe(int(), min(8)), def(1)),
+ *     e: { fn: pipe(path('prop7', 'prop8'), int()), on: (processed) => processed.a == 2 }
+ * })({ prop1: 1, prop2: 's', prop3: 'v', b: 2, prop6: 6, prop7: { prop8: 100 } });
  * expect(result).deep.equal({
  *     a: 1,
  *     b: 2,
- *     c: 'v',
- *     d: undefined,
+ *     c: undefined,
+ *     d: 1,
  *     e: undefined
  * });
  *
@@ -403,11 +407,11 @@ export declare const path: (...paths: Array<string>) => (value: any) => any;
  * expect(result).deep.equal({});
  *
  * result = project({})(undefined);
- * expect(result).to.be.undefined;
+ * expect(result).deep.equal({});
  * ```
  */
 export declare const project: (map: {
-    [key: string]: string | any[] | Func<any, any>;
+    [key: string]: DependFunc;
 }) => Func;
 /**
  * 构建值检查处理函数

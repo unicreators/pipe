@@ -492,10 +492,13 @@ export const path = (...paths: Array<string>) => (value: any) => {
     return _value;
 };
 
+
+export type DependFunc = Func | { fn: Func, on?: (processed: Record<string, any>, value: any) => boolean };
+
 /**
  * 构建投影处理函数
  * 
- * @param {{ [key: string]: Func | string | Array<any> }} map
+ * @param {{ [key: string]: DependFunc }} map
  * 映射
  * 
  * @return {Func<object, object>}
@@ -503,44 +506,49 @@ export const path = (...paths: Array<string>) => (value: any) => {
  * @example
  * ```ts
  * let result = project({
- *     a: ['prop1', int()],
- *     b: int(),
- *     c: ['prop3'],
- *     d: ['prop2', pipe(int(), min(4))],
- *     e: 'prop4'
- * })({ prop1: 1, prop2: 's', prop3: 'v', b: 2 });
+ *     a: path('prop1'),
+ *     b: pipe(path('b'), int()),
+ *     c: pipe(path('prop3'), int()),
+ *     d: forward(path('prop6'), pipe(int(), min(8)), def(1)),
+ *     e: { fn: pipe(path('prop7', 'prop8'), int()), on: (processed) => processed.a == 2 }
+ * })({ prop1: 1, prop2: 's', prop3: 'v', b: 2, prop6: 6, prop7: { prop8: 100 } });
  * expect(result).deep.equal({
  *     a: 1,
  *     b: 2,
- *     c: 'v',
- *     d: undefined,
+ *     c: undefined,
+ *     d: 1,
  *     e: undefined
  * });
- * 
+ *
  * result = project({})({ a: 1 });
  * expect(result).deep.equal({});
- * 
+ *
  * result = project({})(undefined);
- * expect(result).to.be.undefined;
+ * expect(result).deep.equal({});
  * ```
  */
-export const project = (map: { [key: string]: Func | string | Array<any> }): Func => {
-    let _map = map || {}, _maps = Object.keys(_map).map(key => {
-        let _item = _map[key];
-        if (Array.isArray(_item)) {
-            let paths = (_item as Array<any>).filter(_isString),
-                fn = _item[_item.length - 1];
-            return [key, fn, paths.length ? paths : [key]];
+export const project = (map: { [key: string]: DependFunc }): Func => {
+    let keys = Object.keys(map || {}), _items = [], _children = [];
+    for (let i = 0; i < keys.length; i++) {
+        let key = keys[i], item = map[key];
+        if (_isFunction(item)) item = { fn: item };
+        let { fn, on } = (item || {}) as any;
+        if (!_isFunction(on)) {
+            _items.push([key, fn]);
+            continue;
         }
-        if (_isString(_item))
-            return [key, undefined, [_item]];
-        return [key, _item, [key]];
-    });
-    return (value: any) => _isObject(value) ?
-        _maps.reduce((r, [prop, fn, paths]) => {
-            r[prop] = forward(path(...paths), fn)(value);
+        _children.push([key, fn, on]);
+    }
+    return (value: any) => {
+        let processed = _items.reduce((r, [prop, fn]) => {
+            r[prop] = fn(value);
             return r;
-        }, {}) : undefined;
+        }, {});
+        return Object.assign(processed, _children.reduce((r, [prop, fn, on]) => {
+            r[prop] = on(processed, value) ? fn(value) : undefined;
+            return r;
+        }, {}));
+    };
 }
 
 
