@@ -465,7 +465,7 @@ const _exec = <T = any, R = any>(handler: Func<T, R>, handlerIndex: number, prev
  * @param {...Array<string>} paths
  * 路径
  * 
- * @return {Func<object, any>}
+ * @return {Func}
  * 
  * @example
  * ```ts
@@ -554,7 +554,7 @@ export const project = (map: { [key: string]: DependFunc }): Func => {
 
 /** 
  * 构建值检查处理函数
- * 当 {@link match match} 函数返回 `true` 时，则抛出 {@link errorOrErrorFn errorOrErrorFn} 构建的异常
+ * 当 {@link match} 函数返回 `true` 时，则抛出 {@link errorOrErrorFn} 构建的异常
  *
  * @template T 
  * 输入类型
@@ -566,9 +566,24 @@ export const project = (map: { [key: string]: DependFunc }): Func => {
  * 异常值或构建异常的函数
  * 
  * @param {Func<T, boolean>} [match]
- * 匹配函数，当此函数返回 `true` 时，则抛出 {@link errorOrErrorFn errorOrErrorFn} 构建的异常
+ * 匹配函数，当此函数返回 `true` 时，则抛出 {@link errorOrErrorFn} 构建的异常
  * 
  * @return {Func<T, R>}
+ * 
+ * @example
+ * ```ts
+ * let error = new Error();
+ * let fn = throwError(error, value => value === 1);
+ * expect(() => fn(1)).throw(error);
+ * expect(fn(2)).equal(2);
+ *
+ * fn = forward(int(), throwError(error, value => value === 1));
+ * expect(() => fn(1)).throw(error);
+ *
+ * fn = forward(int(), throwError(error))
+ * expect(() => fn('s')).throw(error);
+ * expect(fn(1)).equal(1);
+ * ```
  */
 export const throwError = <T = any, R = any>(errorOrErrorFn: Func | any, match: Func<T, boolean> = _isNullOrUndefined): Func<T, R> =>
     (value: T): R => {
@@ -578,7 +593,7 @@ export const throwError = <T = any, R = any>(errorOrErrorFn: Func | any, match: 
 
 /** 
  * 构建`null`或`undefined`值检查处理函数
- * 当处理值为`null`或`undefined`时，则抛出 {@link errorOrErrorFn errorOrErrorFn} 构建的异常
+ * 当处理值为`null`或`undefined`时，则抛出 {@link errorOrErrorFn} 构建的异常
  *
  * @template T 
  * 输入类型
@@ -590,8 +605,137 @@ export const throwError = <T = any, R = any>(errorOrErrorFn: Func | any, match: 
  * 异常值或构建异常的函数
  * 
  * @return {Func<T, R>}
+ * 
+ * @example
+ * ```ts
+ * let error = new Error();
+ * // required = throwError(..., isNullOrUnedfined)
+ * let fn = forward(int(), required(error))
+ * expect(() => fn('s')).throw(error);
+ * expect(fn(1)).equal(1);
+ * ```
  */
 export const required = <T = any, R = any>(errorOrErrorFn: Func | any): Func<T, R> => throwError(errorOrErrorFn);
+
+
+/** 
+* 构建值处理窃听函数
+* 窃听 {@link handler} 的输入输出值
+*
+* @template T 
+* 输入类型
+*
+* @template R
+* 输出类型
+*
+* @param {Func} handler
+* 值处理函数
+* 
+* @param {(input: T, output: R) => void} tapFn
+* 窃听函数，窃听 {@link handler} 的输入输出值
+* 
+* @return {Func<T, R>}
+* 
+* @example
+* ```ts
+* let input, output;
+* tap(int(), (_input, _output) => {
+*     input = _input; output = _output;
+* })(1);
+* expect(input).equal(1);
+* expect(output).equal(1);
+*
+* tap(int(), (_input, _output) => {
+*     input = _input; output = _output;
+* })('s');
+* expect(input).equal('s');
+* expect(output).equal(undefined);
+*
+* tap(def(4), (_input, _output) => {
+*     input = _input; output = _output;
+* })(undefined);
+* expect(input).equal(undefined);
+* expect(output).equal(4);
+*
+* tap(pipe(int(), min(1), max(8)), (_input, _output) => {
+*     input = _input; output = _output;
+* })(9);
+* expect(input).equal(9);
+* expect(output).equal(undefined);
+* ```
+*/
+export const tap = <T = any, R = any>(handler: Func<T, R>, tapFn: (input: T, output: R) => void): Func<T, R> =>
+    (value: T): R => {
+        let input = value, output = handler(value);
+        tapFn(input, output);
+        return output;
+    };
+
+/** 
+ * 构建无效值窃听函数
+ * 当 {@link handler} 的输入值为非`null`或`undefined`，输出值为`undefined`时，视为此值为无效值
+ *
+ * @template T 
+ * 输入类型
+ *
+ * @template R
+ * 输出类型
+ *
+ * @param {Func} handler
+ * 值处理函数
+ * 
+ * @param {(value: T) => void} invalidFn
+ * 当值被 {@link handler} 视为无效值时执行的函数
+ * 
+ * @param {{emptyStringAsNull?: boolean}} [opts]
+ * 
+ * @param {boolean} [opts.emptyStringAsNull] 是否将空字符串的输入值视为`null`，默认为`false`
+ * 
+ * @return {Func<T, R>}
+ * 
+ * @example
+ * ```ts
+ * let value = undefined;
+ * invalid(int(), (_value) => {
+ *     // no call
+ *     value = _value;
+ * })(1);
+ * expect(value).equal(undefined);
+ *
+ * value = undefined;
+ * invalid(int(), (_value) => {
+ *     value = _value;
+ * })('s');
+ * expect(value).equal('s');
+ *
+ * value = undefined;
+ * invalid(pipe(int(), min(1), max(8)), (_value) => {
+ *     value = _value;
+ * })(9);
+ * expect(value).equal(9);
+ *
+ * value = undefined;
+ * invalid(pipe(string(), minLength(1)), (_value) => {
+ *     value = _value;
+ * }, { emptyStringAsNull: false })('');
+ * expect(value).equal('');
+ *
+ * value = undefined;
+ * invalid(pipe(string(), minLength(1)), (_value) => {
+ *     // no call
+ *     value = _value;
+ * }, { emptyStringAsNull: true })('');
+ * expect(value).equal(undefined);
+ * ```
+ */
+export const invalid = <T = any, R = any>(handler: Func<T, R>,
+    invalidFn: (value: T) => void, opts?: { emptyStringAsNull?: boolean }): Func<T, R> =>
+    tap(handler, (input: T, output: R) => {
+        if (_isNullOrUndefined(input)) return;
+        if (opts?.emptyStringAsNull && ((input as any) === '')) return;
+        if (_isNullOrUndefined(output)) invalidFn(input);
+    });
+
 
 
 /**
@@ -697,6 +841,33 @@ export const minLength = <T = string | Array<any>>(min: number): Func<T, T> =>
  */
 export const maxLength = <T = string | Array<any>>(max: number): Func<T, T> =>
     _build((value: T) => (value as any)?.length <= max);
+
+/**
+ * 构建限制值包含于指定集合处理函数
+ * 当值未包含于 {@link items} 集合时将输出 `undefined`，否则输出原值
+ * 
+ * @template T
+ * 
+ * @param {Array<T>} items
+ * 集合
+ * 
+ * @return {Func<T, T>}
+ * 
+ * @example
+ * ```ts 
+ * let result = includes([1, 2, 3])(1);
+ * expect(result).equal(1);
+ *
+ * result = includes([2, 3])(1);
+ * expect(result).to.be.undefined;
+ *
+ * result = includes(undefined)(1);
+ * expect(result).equal(1);
+ * ```
+ */
+export const includes = <T = any>(items: Array<T>): Func<T, T> =>
+    (value: T) => _isNullOrUndefined(items) ? value :
+        items.includes(value) ? value : undefined;
 
 /**
  * 构建缺省值处理函数

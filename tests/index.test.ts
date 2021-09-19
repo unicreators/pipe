@@ -1,7 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
 
-import { int, string, float, regex, pipe, max, min, date, defaults, boolean, minLength, maxLength, def, array, behaviors, forward, any, all, path, project } from '../src/index';
+import { int, string, float, regex, pipe, max, min, date, defaults, boolean, minLength, maxLength, def, array, behaviors, forward, any, all, path, project, includes, tap, invalid, throwError, required } from '../src/index';
 
 
 describe('index.test.ts', function () {
@@ -164,6 +164,17 @@ describe('index.test.ts', function () {
         expect(result).to.be.undefined;
     });
 
+    it('includes', async () => {
+        let result = includes([1, 2, 3])(1);
+        expect(result).equal(1);
+
+        result = includes([2, 3])(1);
+        expect(result).to.be.undefined;
+
+        result = includes(undefined)(1);
+        expect(result).equal(1);
+    });
+
     it('def', async () => {
         let result = def(2)(undefined);
         expect(result).equal(2);
@@ -172,6 +183,90 @@ describe('index.test.ts', function () {
         expect(result).equal(1);
     });
 
+    it('throwError', async () => {
+        let error = new Error();
+        let fn = throwError(error, value => value === 1);
+        expect(() => fn(1)).throw(error);
+        expect(fn(2)).equal(2);
+
+        fn = forward(int(), throwError(error, value => value === 1));
+        expect(() => fn(1)).throw(error);
+
+        fn = forward(int(), throwError(error/*, match default = isNullOrUnedfined */))
+        expect(() => fn('s')).throw(error);
+        expect(fn(1)).equal(1);
+    });
+
+    it('required', async () => {
+        let error = new Error();
+        // required = throwError(..., isNullOrUnedfined)
+        let fn = forward(int(), required(error))
+        expect(() => fn('s')).throw(error);
+        expect(fn(1)).equal(1);
+    });
+
+
+    it('tap', async () => {
+        let input, output;
+        tap(int(), (_input, _output) => {
+            input = _input; output = _output;
+        })(1);
+        expect(input).equal(1);
+        expect(output).equal(1);
+
+        tap(int(), (_input, _output) => {
+            input = _input; output = _output;
+        })('s');
+        expect(input).equal('s');
+        expect(output).equal(undefined);
+
+        tap(def(4), (_input, _output) => {
+            input = _input; output = _output;
+        })(undefined);
+        expect(input).equal(undefined);
+        expect(output).equal(4);
+
+        tap(pipe(int(), min(1), max(8)), (_input, _output) => {
+            input = _input; output = _output;
+        })(9);
+        expect(input).equal(9);
+        expect(output).equal(undefined);
+    });
+
+
+    it('invalid', async () => {
+        let value = undefined;
+        invalid(int(), (_value) => {
+            // no call
+            value = _value;
+        })(1);
+        expect(value).equal(undefined);
+
+        value = undefined;
+        invalid(int(), (_value) => {
+            value = _value;
+        })('s');
+        expect(value).equal('s');
+
+        value = undefined;
+        invalid(pipe(int(), min(1), max(8)), (_value) => {
+            value = _value;
+        })(9);
+        expect(value).equal(9);
+
+        value = undefined;
+        invalid(pipe(string(), minLength(1)), (_value) => {
+            value = _value;
+        }, { emptyStringAsNull: false })('');
+        expect(value).equal('');
+
+        value = undefined;
+        invalid(pipe(string(), minLength(1)), (_value) => {
+            // no call
+            value = _value;
+        }, { emptyStringAsNull: true })('');
+        expect(value).equal(undefined);
+    });
 
 
 
@@ -305,7 +400,7 @@ describe('index.test.ts', function () {
 
         result = project({})(undefined);
         expect(result).deep.equal({});
-        
+
     });
 
 });

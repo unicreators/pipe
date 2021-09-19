@@ -30,7 +30,9 @@
 - [def](README.md#def)
 - [float](README.md#float)
 - [forward](README.md#forward)
+- [includes](README.md#includes)
 - [int](README.md#int)
+- [invalid](README.md#invalid)
 - [max](README.md#max)
 - [maxLength](README.md#maxlength)
 - [min](README.md#min)
@@ -41,6 +43,7 @@
 - [regex](README.md#regex)
 - [required](README.md#required)
 - [string](README.md#string)
+- [tap](README.md#tap)
 - [throwError](README.md#throwerror)
 
 ## Type aliases
@@ -410,6 +413,43 @@ expect(result).to.be.undefined;
 
 ___
 
+### includes
+
+▸ `Const` **includes**<`T`\>(`items`): [`Func`](interfaces/Func.md)<`T`, `T`\>
+
+构建限制值包含于指定集合处理函数
+当值未包含于 {@link items} 集合时将输出 `undefined`，否则输出原值
+
+**`example`**
+```ts 
+let result = includes([1, 2, 3])(1);
+expect(result).equal(1);
+
+result = includes([2, 3])(1);
+expect(result).to.be.undefined;
+
+result = includes(undefined)(1);
+expect(result).equal(1);
+```
+
+#### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | `any` |
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `items` | `T`[] | 集合 |
+
+#### Returns
+
+[`Func`](interfaces/Func.md)<`T`, `T`\>
+
+___
+
 ### int
 
 ▸ `Const` **int**(`opts?`): [`Func`](interfaces/Func.md)<`any`, `number`\>
@@ -440,6 +480,70 @@ expect(result).to.be.undefined;
 [`Func`](interfaces/Func.md)<`any`, `number`\>
 
 处理函数
+
+___
+
+### invalid
+
+▸ `Const` **invalid**<`T`, `R`\>(`handler`, `invalidFn`, `opts?`): [`Func`](interfaces/Func.md)<`T`, `R`\>
+
+构建无效值窃听函数
+当 {@link handler} 的输入值为非`null`或`undefined`，输出值为`undefined`时，视为此值为无效值
+
+**`example`**
+```ts
+let value = undefined;
+invalid(int(), (_value) => {
+    // no call
+    value = _value;
+})(1);
+expect(value).equal(undefined);
+
+value = undefined;
+invalid(int(), (_value) => {
+    value = _value;
+})('s');
+expect(value).equal('s');
+
+value = undefined;
+invalid(pipe(int(), min(1), max(8)), (_value) => {
+    value = _value;
+})(9);
+expect(value).equal(9);
+
+value = undefined;
+invalid(pipe(string(), minLength(1)), (_value) => {
+    value = _value;
+}, { emptyStringAsNull: false })('');
+expect(value).equal('');
+
+value = undefined;
+invalid(pipe(string(), minLength(1)), (_value) => {
+    // no call
+    value = _value;
+}, { emptyStringAsNull: true })('');
+expect(value).equal(undefined);
+```
+
+#### Type parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `T` | `any` | 输入类型 |
+| `R` | `any` | 输出类型 |
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `handler` | [`Func`](interfaces/Func.md)<`T`, `R`\> | 值处理函数 |
+| `invalidFn` | (`value`: `T`) => `void` | 当值被 {@link handler} 视为无效值时执行的函数 |
+| `opts?` | `Object` | - |
+| `opts.emptyStringAsNull?` | `boolean` | - |
+
+#### Returns
+
+[`Func`](interfaces/Func.md)<`T`, `R`\>
 
 ___
 
@@ -775,7 +879,16 @@ ___
 ▸ `Const` **required**<`T`, `R`\>(`errorOrErrorFn`): [`Func`](interfaces/Func.md)<`T`, `R`\>
 
 构建`null`或`undefined`值检查处理函数
-当处理值为`null`或`undefined`时，则抛出 {@link errorOrErrorFn errorOrErrorFn} 构建的异常
+当处理值为`null`或`undefined`时，则抛出 {@link errorOrErrorFn} 构建的异常
+
+**`example`**
+```ts
+let error = new Error();
+// required = throwError(..., isNullOrUnedfined)
+let fn = forward(int(), required(error))
+expect(() => fn('s')).throw(error);
+expect(fn(1)).equal(1);
+```
 
 #### Type parameters
 
@@ -829,12 +942,82 @@ expect(result).to.be.undefined;
 
 ___
 
+### tap
+
+▸ `Const` **tap**<`T`, `R`\>(`handler`, `tapFn`): [`Func`](interfaces/Func.md)<`T`, `R`\>
+
+构建值处理窃听函数
+窃听 {@link handler} 的输入输出值
+
+**`example`**
+```ts
+let input, output;
+tap(int(), (_input, _output) => {
+    input = _input; output = _output;
+})(1);
+expect(input).equal(1);
+expect(output).equal(1);
+
+tap(int(), (_input, _output) => {
+    input = _input; output = _output;
+})('s');
+expect(input).equal('s');
+expect(output).equal(undefined);
+
+tap(def(4), (_input, _output) => {
+    input = _input; output = _output;
+})(undefined);
+expect(input).equal(undefined);
+expect(output).equal(4);
+
+tap(pipe(int(), min(1), max(8)), (_input, _output) => {
+    input = _input; output = _output;
+})(9);
+expect(input).equal(9);
+expect(output).equal(undefined);
+```
+
+#### Type parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `T` | `any` | 输入类型 |
+| `R` | `any` | 输出类型 |
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `handler` | [`Func`](interfaces/Func.md)<`T`, `R`\> | 值处理函数 |
+| `tapFn` | (`input`: `T`, `output`: `R`) => `void` | 窃听函数，窃听 {@link handler} 的输入输出值 |
+
+#### Returns
+
+[`Func`](interfaces/Func.md)<`T`, `R`\>
+
+___
+
 ### throwError
 
 ▸ `Const` **throwError**<`T`, `R`\>(`errorOrErrorFn`, `match?`): [`Func`](interfaces/Func.md)<`T`, `R`\>
 
 构建值检查处理函数
-当 {@link match match} 函数返回 `true` 时，则抛出 {@link errorOrErrorFn errorOrErrorFn} 构建的异常
+当 {@link match} 函数返回 `true` 时，则抛出 {@link errorOrErrorFn} 构建的异常
+
+**`example`**
+```ts
+let error = new Error();
+let fn = throwError(error, value => value === 1);
+expect(() => fn(1)).throw(error);
+expect(fn(2)).equal(2);
+
+fn = forward(int(), throwError(error, value => value === 1));
+expect(() => fn(1)).throw(error);
+
+fn = forward(int(), throwError(error))
+expect(() => fn('s')).throw(error);
+expect(fn(1)).equal(1);
+```
 
 #### Type parameters
 

@@ -48,6 +48,8 @@ $ npm install @unicreators/pipe
 - [def](./docs#def)
 - [required](./docs#required)
 - [throwError](./docs#throwerror)
+- [tap](./docs#tap)
+- [invalid](./docs#invalid)
 - [path](./docs#path)
 - [project](./docs#project)
   
