@@ -8,7 +8,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
     return to;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.regex = exports.array = exports.boolean = exports.date = exports.float = exports.int = exports.string = exports.def = exports.maxLength = exports.minLength = exports.max = exports.min = exports.required = exports.throwError = exports.project = exports.path = exports.all = exports.any = exports.forward = exports.pipe = exports.defaults = exports.behaviors = void 0;
+exports.regex = exports.array = exports.boolean = exports.date = exports.float = exports.int = exports.string = exports.def = exports.includes = exports.maxLength = exports.minLength = exports.max = exports.min = exports.invalid = exports.tap = exports.required = exports.throwError = exports.project = exports.path = exports.all = exports.any = exports.forward = exports.pipe = exports.defaults = exports.behaviors = void 0;
 /// yichen <d.unicreators@gmail.com>
 ///
 var utils_1 = require("./utils");
@@ -256,7 +256,7 @@ var _exec = function (handler, handlerIndex, prevValue, behavior) {
  * @param {...Array<string>} paths
  * 路径
  *
- * @return {Func<object, any>}
+ * @return {Func}
  *
  * @example
  * ```ts
@@ -350,7 +350,7 @@ var project = function (map) {
 exports.project = project;
 /**
  * 构建值检查处理函数
- * 当 {@link match match} 函数返回 `true` 时，则抛出 {@link errorOrErrorFn errorOrErrorFn} 构建的异常
+ * 当 {@link match} 函数返回 `true` 时，则抛出 {@link errorOrErrorFn} 构建的异常
  *
  * @template T
  * 输入类型
@@ -362,9 +362,24 @@ exports.project = project;
  * 异常值或构建异常的函数
  *
  * @param {Func<T, boolean>} [match]
- * 匹配函数，当此函数返回 `true` 时，则抛出 {@link errorOrErrorFn errorOrErrorFn} 构建的异常
+ * 匹配函数，当此函数返回 `true` 时，则抛出 {@link errorOrErrorFn} 构建的异常
  *
  * @return {Func<T, R>}
+ *
+ * @example
+ * ```ts
+ * let error = new Error();
+ * let fn = throwError(error, value => value === 1);
+ * expect(() => fn(1)).throw(error);
+ * expect(fn(2)).equal(2);
+ *
+ * fn = forward(int(), throwError(error, value => value === 1));
+ * expect(() => fn(1)).throw(error);
+ *
+ * fn = forward(int(), throwError(error))
+ * expect(() => fn('s')).throw(error);
+ * expect(fn(1)).equal(1);
+ * ```
  */
 var throwError = function (errorOrErrorFn, match) {
     if (match === void 0) { match = utils_1._isNullOrUndefined; }
@@ -377,7 +392,7 @@ var throwError = function (errorOrErrorFn, match) {
 exports.throwError = throwError;
 /**
  * 构建`null`或`undefined`值检查处理函数
- * 当处理值为`null`或`undefined`时，则抛出 {@link errorOrErrorFn errorOrErrorFn} 构建的异常
+ * 当处理值为`null`或`undefined`时，则抛出 {@link errorOrErrorFn} 构建的异常
  *
  * @template T
  * 输入类型
@@ -389,9 +404,140 @@ exports.throwError = throwError;
  * 异常值或构建异常的函数
  *
  * @return {Func<T, R>}
+ *
+ * @example
+ * ```ts
+ * let error = new Error();
+ * // required = throwError(..., isNullOrUnedfined)
+ * let fn = forward(int(), required(error))
+ * expect(() => fn('s')).throw(error);
+ * expect(fn(1)).equal(1);
+ * ```
  */
 var required = function (errorOrErrorFn) { return exports.throwError(errorOrErrorFn); };
 exports.required = required;
+/**
+* 构建值处理窃听函数
+* 窃听 {@link handler} 的输入输出值
+*
+* @template T
+* 输入类型
+*
+* @template R
+* 输出类型
+*
+* @param {Func} handler
+* 值处理函数
+*
+* @param {(input: T, output: R) => void} tapFn
+* 窃听函数，窃听 {@link handler} 的输入输出值
+*
+* @return {Func<T, R>}
+*
+* @example
+* ```ts
+* let input, output;
+* tap(int(), (_input, _output) => {
+*     input = _input; output = _output;
+* })(1);
+* expect(input).equal(1);
+* expect(output).equal(1);
+*
+* tap(int(), (_input, _output) => {
+*     input = _input; output = _output;
+* })('s');
+* expect(input).equal('s');
+* expect(output).equal(undefined);
+*
+* tap(def(4), (_input, _output) => {
+*     input = _input; output = _output;
+* })(undefined);
+* expect(input).equal(undefined);
+* expect(output).equal(4);
+*
+* tap(pipe(int(), min(1), max(8)), (_input, _output) => {
+*     input = _input; output = _output;
+* })(9);
+* expect(input).equal(9);
+* expect(output).equal(undefined);
+* ```
+*/
+var tap = function (handler, tapFn) {
+    return function (value) {
+        var input = value, output = handler(value);
+        tapFn(input, output);
+        return output;
+    };
+};
+exports.tap = tap;
+/**
+ * 构建无效值窃听函数
+ * 当 {@link handler} 的输入值为非`null`或`undefined`，输出值为`undefined`时，视为此值为无效值
+ *
+ * @template T
+ * 输入类型
+ *
+ * @template R
+ * 输出类型
+ *
+ * @param {Func} handler
+ * 值处理函数
+ *
+ * @param {(value: T) => void} invalidFn
+ * 当值被 {@link handler} 视为无效值时执行的函数
+ *
+ * @param {{emptyStringAsNull?: boolean}} [opts]
+ *
+ * @param {boolean} [opts.emptyStringAsNull] 是否将空字符串的输入值视为`null`，默认为`false`
+ *
+ * @return {Func<T, R>}
+ *
+ * @example
+ * ```ts
+ * let value = undefined;
+ * invalid(int(), (_value) => {
+ *     // no call
+ *     value = _value;
+ * })(1);
+ * expect(value).equal(undefined);
+ *
+ * value = undefined;
+ * invalid(int(), (_value) => {
+ *     value = _value;
+ * })('s');
+ * expect(value).equal('s');
+ *
+ * value = undefined;
+ * invalid(pipe(int(), min(1), max(8)), (_value) => {
+ *     value = _value;
+ * })(9);
+ * expect(value).equal(9);
+ *
+ * value = undefined;
+ * invalid(pipe(string(), minLength(1)), (_value) => {
+ *     value = _value;
+ * }, { emptyStringAsNull: false })('');
+ * expect(value).equal('');
+ *
+ * value = undefined;
+ * invalid(pipe(string(), minLength(1)), (_value) => {
+ *     // no call
+ *     value = _value;
+ * }, { emptyStringAsNull: true })('');
+ * expect(value).equal(undefined);
+ * ```
+ */
+var invalid = function (handler, invalidFn, opts) {
+    return exports.tap(handler, function (input, output) {
+        if (utils_1._isNullOrUndefined(input))
+            return;
+        if ((opts === null || opts === void 0 ? void 0 : opts.emptyStringAsNull) && (input === ''))
+            return;
+        if (utils_1._isNullOrUndefined(output))
+            invalidFn(input);
+    });
+};
+exports.invalid = invalid;
 /**
  * 构建限制最小值处理函数
  * 当值小于限制最小值 {@link minValue} 时将输出 `undefined`，否则输出原值
@@ -500,6 +646,34 @@ var maxLength = function (max) {
     return _build(function (value) { var _a; return ((_a = value) === null || _a === void 0 ? void 0 : _a.length) <= max; });
 };
 exports.maxLength = maxLength;
+/**
+ * 构建限制值包含于指定集合处理函数
+ * 当值未包含于 {@link items} 集合时将输出 `undefined`，否则输出原值
+ *
+ * @template T
+ *
+ * @param {Array<T>} items
+ * 集合
+ *
+ * @return {Func<T, T>}
+ *
+ * @example
+ * ```ts
+ * let result = includes([1, 2, 3])(1);
+ * expect(result).equal(1);
+ *
+ * result = includes([2, 3])(1);
+ * expect(result).to.be.undefined;
+ *
+ * result = includes(undefined)(1);
+ * expect(result).equal(1);
+ * ```
+ */
+var includes = function (items) {
+    return function (value) { return utils_1._isNullOrUndefined(items) ? value :
+        items.includes(value) ? value : undefined; };
+};
+exports.includes = includes;
 /**
  * 构建缺省值处理函数
  * 当值为 `null` 或 `undefined` 时将输出缺省值 {@link def}，否则输出原值
