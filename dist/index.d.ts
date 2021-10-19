@@ -851,6 +851,9 @@ export declare const date: (opts?: {
 * @param {boolean} [opts.emptyStringAsUndefined]
 * 是否将空字符串转换 `Undefined`，仅在 [tryConvert] 为 `true` 时有效
 *
+* @param {boolean} [opts.keepNullOrUndefined]
+* 是否保持 `null` 或 `Undefined`值，仅在 [tryConvert] 为 `true` 时有效
+*
 * @return {Func<any, boolean>}
 * 处理函数
 *
@@ -868,6 +871,9 @@ export declare const date: (opts?: {
 * result = boolean({ tryConvert: true, emptyStringAsUndefined: true })('');
 * expect(result).to.be.undefined;
 *
+* result = boolean({ tryConvert: true, emptyStringAsUndefined: true, keepNullOrUndefined: true })(undefined);
+* expect(result).to.be.undefined;
+*
 * result = boolean()('false');
 * expect(result).equal(true);
 *
@@ -878,6 +884,7 @@ export declare const date: (opts?: {
 export declare const boolean: (opts?: {
     tryConvert?: boolean;
     emptyStringAsUndefined?: boolean;
+    keepNullOrUndefined?: boolean;
 }) => Func<any, boolean>;
 /**
 * 构建数组值处理函数

@@ -64,6 +64,9 @@ describe('index.test.ts', function () {
         result = boolean({ tryConvert: true, emptyStringAsUndefined: true })('');
         expect(result).to.be.undefined;
 
+        result = boolean({ tryConvert: true, emptyStringAsUndefined: true, keepNullOrUndefined: true })(undefined);
+        expect(result).to.be.undefined;
+
         result = boolean()('false');
         expect(result).equal(true);
 

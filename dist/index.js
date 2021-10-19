@@ -833,6 +833,9 @@ exports.date = date;
 * @param {boolean} [opts.emptyStringAsUndefined]
 * 是否将空字符串转换 `Undefined`，仅在 [tryConvert] 为 `true` 时有效
 *
+* @param {boolean} [opts.keepNullOrUndefined]
+* 是否保持 `null` 或 `Undefined`值，仅在 [tryConvert] 为 `true` 时有效
+*
 * @return {Func<any, boolean>}
 * 处理函数
 *
@@ -850,6 +853,9 @@ exports.date = date;
 * result = boolean({ tryConvert: true, emptyStringAsUndefined: true })('');
 * expect(result).to.be.undefined;
 *
+* result = boolean({ tryConvert: true, emptyStringAsUndefined: true, keepNullOrUndefined: true })(undefined);
+* expect(result).to.be.undefined;
+*
 * result = boolean()('false');
 * expect(result).equal(true);
 *
@@ -858,7 +864,12 @@ exports.date = date;
 * ```
  */
 var boolean = function (opts) {
-    return _build(utils_1._isBoolean, utils_1._ensure(opts === null || opts === void 0 ? void 0 : opts.tryConvert, exports.defaults.boolean.tryConvert) ? function (v) { return (opts === null || opts === void 0 ? void 0 : opts.emptyStringAsUndefined) && v === '' ? undefined : !!v; } : undefined);
+    return _build(utils_1._isBoolean, utils_1._ensure(opts === null || opts === void 0 ? void 0 : opts.tryConvert, exports.defaults.boolean.tryConvert) ?
+        (function (v) {
+            if ((opts === null || opts === void 0 ? void 0 : opts.emptyStringAsUndefined) && v === '')
+                return undefined;
+            return ((opts === null || opts === void 0 ? void 0 : opts.keepNullOrUndefined) && utils_1._isNullOrUndefined(v)) ? v : !!v;
+        }) : undefined);
 };
 exports.boolean = boolean;
 /**
