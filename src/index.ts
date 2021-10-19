@@ -1031,6 +1031,9 @@ export const date = (opts?: { tryConvert?: boolean }): Func<any, Date> =>
 * @param {boolean} [opts.tryConvert]
 * 是否尝试转换
 *
+* @param {boolean} [opts.emptyStringAsUndefined]
+* 是否将空字符串转换 `Undefined`，仅在 [tryConvert] 为 `true` 时有效
+*
 * @return {Func<any, boolean>}  
 * 处理函数
 * 
@@ -1045,6 +1048,9 @@ export const date = (opts?: { tryConvert?: boolean }): Func<any, Date> =>
 * result = boolean()('');
 * expect(result).equal(false);
 *
+* result = boolean({ tryConvert: true, emptyStringAsUndefined: true })('');
+* expect(result).to.be.undefined;
+*
 * result = boolean()('false');
 * expect(result).equal(true);
 *
@@ -1052,9 +1058,9 @@ export const date = (opts?: { tryConvert?: boolean }): Func<any, Date> =>
 * expect(result).to.be.undefined;
 * ```
  */
-export const boolean = (opts?: { tryConvert?: boolean }): Func<any, boolean> =>
+export const boolean = (opts?: { tryConvert?: boolean, emptyStringAsUndefined?: boolean }): Func<any, boolean> =>
     _build<any, boolean>(_isBoolean,
-        _ensure(opts?.tryConvert, defaults.boolean.tryConvert) ? (v: any) => !!v : undefined);
+        _ensure(opts?.tryConvert, defaults.boolean.tryConvert) ? (v: any) => opts?.emptyStringAsUndefined && v === '' ? undefined : !!v : undefined);
 
 /**
 * 构建数组值处理函数

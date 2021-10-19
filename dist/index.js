@@ -830,6 +830,9 @@ exports.date = date;
 * @param {boolean} [opts.tryConvert]
 * 是否尝试转换
 *
+* @param {boolean} [opts.emptyStringAsUndefined]
+* 是否将空字符串转换 `Undefined`，仅在 [tryConvert] 为 `true` 时有效
+*
 * @return {Func<any, boolean>}
 * 处理函数
 *
@@ -844,6 +847,9 @@ exports.date = date;
 * result = boolean()('');
 * expect(result).equal(false);
 *
+* result = boolean({ tryConvert: true, emptyStringAsUndefined: true })('');
+* expect(result).to.be.undefined;
+*
 * result = boolean()('false');
 * expect(result).equal(true);
 *
@@ -852,7 +858,7 @@ exports.date = date;
 * ```
  */
 var boolean = function (opts) {
-    return _build(utils_1._isBoolean, utils_1._ensure(opts === null || opts === void 0 ? void 0 : opts.tryConvert, exports.defaults.boolean.tryConvert) ? function (v) { return !!v; } : undefined);
+    return _build(utils_1._isBoolean, utils_1._ensure(opts === null || opts === void 0 ? void 0 : opts.tryConvert, exports.defaults.boolean.tryConvert) ? function (v) { return (opts === null || opts === void 0 ? void 0 : opts.emptyStringAsUndefined) && v === '' ? undefined : !!v; } : undefined);
 };
 exports.boolean = boolean;
 /**

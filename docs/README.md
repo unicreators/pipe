@@ -241,6 +241,9 @@ expect(result).equal(false);
 result = boolean()('');
 expect(result).equal(false);
 
+result = boolean({ tryConvert: true, emptyStringAsUndefined: true })('');
+expect(result).to.be.undefined;
+
 result = boolean()('false');
 expect(result).equal(true);
 
@@ -253,6 +256,7 @@ expect(result).to.be.undefined;
 | Name | Type |
 | :------ | :------ |
 | `opts?` | `Object` |
+| `opts.emptyStringAsUndefined?` | `boolean` |
 | `opts.tryConvert?` | `boolean` |
 
 #### Returns
